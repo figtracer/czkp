@@ -2,7 +2,7 @@
 
 This is an educational implementation of a zero-knowledge proof (ZKP) system for discrete logarithms, based on the Schnorr identification protocol. This code demonstrates how a prover can convince a verifier that they know a secret value `x` (the discrete logarithm) without revealing `x` itself.
 
-| This is my solution to the ZKIAP Session 1 Optional Exercise (https://hackmd.io/@gubsheep/Hy57lluOs)
+> This is my solution to https://hackmd.io/@gubsheep/Hy57lluOs
 
 ## Theoretical Background
 
@@ -42,17 +42,3 @@ This implementation has several limitations that make it educational but not sui
 gcc -o zkp zkp.c
 ./zkp
 ```
-
-The program demonstrates:
-- Creating a proof with a valid secret key
-- Verifying the proof
-- Attempting verification with an incorrect key (which might succeed when `b = 0`)
-
-## Learning Opportunities
-
-This code is designed to help understand:
-
-1. How zero-knowledge proofs work conceptually
-2. The mathematical foundations of the Schnorr protocol
-3. The role of randomness in cryptographic protocols
-4. The importance of challenge space size in interactive proofs
