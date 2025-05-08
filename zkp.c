@@ -82,16 +82,16 @@ Proof dlogProof(long long x, long long g, long long p, long long *y)
     /* Calculate public key y = g^x mod p */
     *y = mod_pow(g, x, p);
 
-    /* Prover -> Choose random r, where 0 <= r < p-1 */
+    /* [Prover] Choose random r, where 0 <= r < p-1 */
     long long r = gen_rand_num();
 
-    /* Prover -> Compute commitment h = g^r mod p */
+    /* [Prover] Compute commitment h = g^r mod p */
     proof.h = mod_pow(g, r, p);
 
-    /* Verifier -> Generate a random bit b */
+    /* [Verifier] Generate a random bit b */
     proof.b = gen_rand_num() % 2;
 
-    /* Prover -> Compute response s = (r + b*x) mod (p-1) */
+    /* [Prover] Compute response s = (r + b*x) mod (p-1) */
     proof.s = (r + (proof.b * x)) % (p - 1);
 
     return proof;
@@ -121,26 +121,37 @@ int verify(long long y, long long g, long long p, Proof proof)
 
 void proof_of_knowledge()
 {
+    /* [Prover] Generate private key (x) */
     long long x = gen_rand_num();
-    printf("Prover's private key (x): %lld\n", x);
-
-    /* Create proof */
+    /* [Prover] Create proof */
     long long y;
     Proof proof = dlogProof(x, g, p, &y);
+
+    /* [Verifier] Verify proof */
+    int valid = verify(y, g, p, proof);
+    printf("-------- Verify w/ correct x -------\n");
+    printf("Prover's private key (x): %lld\n", x);
     printf("Prover's public key (y = g^x mod p): %lld\n", y);
     printf("Proof: { h: %lld, b: %lld, s: %lld }\n", proof.h, proof.b, proof.s);
+    printf("g^s = %lld\n", mod_pow(g, proof.s, p));
+    printf("h * y^b = %lld\n", (proof.h * mod_pow(y, proof.b, p)) % p);
+    printf("Verification %s\n\n", valid ? "successful" : "failed");
 
-    /* Verifier -> Verify proof */
-    int valid = verify(y, g, p, proof);
-    printf("Verification %s\n", valid ? "successful" : "failed");
-
-    /* Try with wrong x to show that it fails */
-    long long fake_x = x + 1;
+    /* [Fake Prover] Generate private key (x) */
+    long long fake_x = gen_rand_num();
+    /* [Fake Prover] Create proof with fake x */
     long long fake_y;
     Proof fake_proof = dlogProof(fake_x, g, p, &fake_y);
+
+    /* [Verifier] Verify fake proof against the correct public key (y) */
     int fake_valid = verify(y, g, p, fake_proof);
-    printf("Attempting verification with wrong x: %s\n",
-           fake_valid ? "succeeded (BAD!)" : "failed (as expected)");
+    printf("-------- Verify w/ wrong x ---------\n");
+    printf("Fake prover's private key (fake_x): %lld\n", fake_x);
+    printf("Fake prover's public key (fake_y = g^fake_x mod p): %lld\n", fake_y);
+    printf("Fake proof: { h: %lld, b: %lld, s: %lld }\n", fake_proof.h, fake_proof.b, fake_proof.s);
+    printf("g^s = %lld\n", mod_pow(g, fake_proof.s, p));
+    printf("h * y^b = %lld\n", (fake_proof.h * mod_pow(y, fake_proof.b, p)) % p);
+    printf("Verification %s\n", fake_valid ? "successful" : "failed");
 }
 
 int main()
