@@ -127,7 +127,7 @@ void proof_of_knowledge()
     long long y;
     Proof proof = dlogProof(x, g, p, &y);
 
-    /* [Verifier] Verify proof */
+    /* [Verifier] Verify valid proof against the correct public key (y) */
     int valid = verify(y, g, p, proof);
     printf("-------- Verify w/ correct x -------\n");
     printf("Prover's private key (x): %lld\n", x);
@@ -143,7 +143,16 @@ void proof_of_knowledge()
     long long fake_y;
     Proof fake_proof = dlogProof(fake_x, g, p, &fake_y);
 
-    /* [Verifier] Verify fake proof against the correct public key (y) */
+    /** 
+     * [Verifier] Verify fake proof against the correct public key (y) 
+     * 
+     * This should fail 50% of the times (when b = 1) because the fake prover doesn't know the discrete
+     * logarithm of y.
+     * 
+     * If b = 0, the proof will be valid because the fake prover is essentially proving that h = h and (h) is a known value.
+     * For the proof to be valid, g^s ≡ h * y^b (mod p) must hold true.
+     * When b = 0, s = r, so g^s = g^r = h. Furthermore, h * y^0 = h.
+     */
     int fake_valid = verify(y, g, p, fake_proof);
     printf("-------- Verify w/ wrong x ---------\n");
     printf("Fake prover's private key (fake_x): %lld\n", fake_x);
