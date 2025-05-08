@@ -4,13 +4,13 @@
 #include <unistd.h>
 
 /* Prime number p */
-const long long p = 91312003;
+const long long p = 234234163;
 /* Previously computed generator g */
 const long long g = 2;
 
 /**
  * @param h Commitment: g^r mod p
- * @param s Response: (r + c*x) mod (p-1)
+ * @param s Response: (r + b*x) mod (p-1)
  * @param b Challenge: a random bit
  */
 typedef struct
@@ -82,7 +82,7 @@ Proof dlogProof(long long x, long long g, long long p, long long *y)
     /* Calculate public key y = g^x mod p */
     *y = mod_pow(g, x, p);
 
-    /* Prover -> Choose random r, where 0 < r < p-1 */
+    /* Prover -> Choose random r, where 0 <= r < p-1 */
     long long r = gen_rand_num();
 
     /* Prover -> Compute commitment h = g^r mod p */
@@ -92,15 +92,13 @@ Proof dlogProof(long long x, long long g, long long p, long long *y)
     proof.b = gen_rand_num() % 2;
 
     /* Prover -> Compute response s = (r + b*x) mod (p-1) */
-    proof.s = (r + (proof.b * x % (p - 1))) % (p - 1);
-    if (proof.s < 0)
-        proof.s += (p - 1);
+    proof.s = (r + (proof.b * x)) % (p - 1);
 
     return proof;
 }
 
 /**
- * Verify a discrete logarithm proof
+ * Verify that g^s ≡ h * y^b (mod p)
  *
  * @param y the public key (g^x mod p)
  * @param g the generator
@@ -110,17 +108,12 @@ Proof dlogProof(long long x, long long g, long long p, long long *y)
  */
 int verify(long long y, long long g, long long p, Proof proof)
 {
-    /* Verify that g^s ≡ h * y^c (mod p) */
-    /* This checks that g^s ≡ g^(r + xc) (mod p) */
-
     /* Calculate left side: g^s mod p */
     long long left_side = mod_pow(g, proof.s, p);
 
     /* Calculate right side: (h * y^b) mod p */
     long long y_b = mod_pow(y, proof.b, p);
     long long right_side = (proof.h * y_b) % p;
-    if (right_side < 0)
-        right_side += p;
         
     /* Check if they're equal */
     return (left_side == right_side);
